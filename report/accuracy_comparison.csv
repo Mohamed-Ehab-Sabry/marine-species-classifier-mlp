@@ -2,3 +2,4 @@ model,test_acc (%)
 ga_best,78.65824015556636
 random_search_best,78.56101118133203
 baseline,77.54010695187166
+from_scratch_mlp,13.86

@@ -1,0 +1,193 @@
+<html><head><meta charset='utf-8'><title>Marine Species Classification Report</title><style>body{font-family:Arial,sans-serif;margin:40px;} table{border-collapse:collapse;} td,th{border:1px solid #ddd;padding:8px;}</style></head><body>
+<h1>Marine Species Classification — Final Report</h1>
+<p>**Generated on:** 2025-12-22 10:19:01</p>
+<p>**Device:** cuda</p>
+<p>**Number of classes:** 23</p>
+<p>**Dataset:** Sea Animals (23 classes)</p>
+<p>---</p>
+<h2>Executive Summary</h2>
+<p>**🏆 Best Performing Model: ga_best**</p>
+<p>**📊 Test Accuracy: 78.66%**</p>
+<p>This report documents a comprehensive comparison of neural network architectures and hyperparameter optimization strategies for marine species classification.</p>
+<p>---</p>
+<h2>1. Introduction</h2>
+<h3>Objective</h3>
+<p>Develop and compare multiple MLP-based classifiers for marine species image classification using transfer learning with ResNet18 as a feature extractor.</p>
+<h3>Approach</h3>
+<p>- **Feature Extraction:** ResNet18 (pretrained on ImageNet) generates 512-D embeddings</p>
+<p>- **Classification Head:** Custom MLP with configurable architecture</p>
+<p>- **Optimization:** Baseline, Random Search, Genetic Algorithm, and From-Scratch implementations</p>
+<p>---</p>
+<h2>2. Dataset</h2>
+<h3>Source & Structure</h3>
+<p>- **Classes:** 23 marine species categories</p>
+<p>- **Organization:** Folder-based structure (one folder per class)</p>
+<p>- **Preprocessing:**</p>
+<p>  - Resize to 224×224 pixels</p>
+<p>  - Normalize with ImageNet statistics (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])</p>
+<h3>Data Splits</h3>
+<p>Stratified splits to preserve class distribution:</p>
+<p>- **Training:** 70%</p>
+<p>- **Validation:** 15%</p>
+<p>- **Test:** 15%</p>
+<p>---</p>
+<h2>3. Feature Extraction</h2>
+<h3>ResNet18 Backbone</h3>
+<p>- **Pretrained Weights:** ImageNet</p>
+<p>- **Output:** 512-dimensional feature vectors from penultimate layer</p>
+<p>- **Mode:** Frozen backbone (inference only, no fine-tuning)</p>
+<p>---</p>
+<h2>4. Model Architectures</h2>
+<h3>4.1 Baseline PyTorch MLP</h3>
+<p>- **Architecture:** [512] → [256, 128] → [23]</p>
+<p>- **Activation:** ReLU</p>
+<p>- **Optimizer:** Adam (lr=1e-3)</p>
+<p>- **Batch Size:** 64</p>
+<p>- **Epochs:** 12</p>
+<h3>4.2 Random Search Optimized</h3>
+<p>- **Search Space:**</p>
+<p>  - Hidden layers: 1-5</p>
+<p>  - Neurons per layer: 32-512</p>
+<p>  - Activation: {ReLU, Tanh, Sigmoid}</p>
+<p>  - Learning rate: log-uniform [1e-5, 1e-1]</p>
+<p>  - Batch size: {16, 32, 64, 128}</p>
+<p>  - Optimizer: {SGD, Adam, RMSProp, Adagrad}</p>
+<p>  - Epochs: 3-20</p>
+<p>- **Best Configuration:**</p>
+<p>```json</p>
+<p>{
+  "hidden_layers": [
+    436,
+    372,
+    392,
+    374
+  ],
+  "activation": "tanh",
+  "learning_rate": 4.114074596244534e-05,
+  "batch_size": 64,
+  "optimizer": "Adam",
+  "epochs": 20
+}</p>
+<p>```</p>
+<h3>4.3 Genetic Algorithm Optimized</h3>
+<p>- **Chromosome Encoding:** Same hyperparameters as random search</p>
+<p>- **Selection:** Tournament (k=3)</p>
+<p>- **Crossover:** Uniform</p>
+<p>- **Mutation Rate:** 20%</p>
+<p>- **Elitism:** Best individual preserved each generation</p>
+<p>- **Best Chromosome:**</p>
+<p>```json</p>
+<p>{
+  "hidden_layers": 4,
+  "neurons": 435,
+  "activation": "tanh",
+  "learning_rate": 9.379880878313753e-05,
+  "batch_size": 64,
+  "optimizer": "RMSProp",
+  "epochs": 14
+}</p>
+<p>```</p>
+<h3>4.4 From-Scratch NumPy/CuPy MLP</h3>
+<p>- **Implementation:** Manual forward/backward propagation</p>
+<p>- **Architecture:** [512] → [256, 128] → [23] (matching baseline)</p>
+<p>- **Activation:** ReLU</p>
+<p>- **Optimizer:** Gradient Descent (lr=0.1)</p>
+<p>- **Framework:** NumPy/CuPy for GPU acceleration</p>
+<p>---</p>
+<h2>5. Training Configuration</h2>
+<h3>Loss Function</h3>
+<p>- **PyTorch Models:** CrossEntropyLoss (combines LogSoftmax + NLLLoss)</p>
+<p>- **From-Scratch:** Multi-class cross-entropy</p>
+<h3>Hardware</h3>
+<p>- **Device:** cuda</p>
+<p>---</p>
+<h2>6. Results</h2>
+<h3>6.1 Test Accuracy Comparison</h3>
+<p>| Rank | Model | Test Accuracy |</p>
+<p>|------|-------|---------------|</p>
+<p>| 3 | ga_best ⭐ | 78.66% |</p>
+<p>| 2 | random_search_best | 78.56% |</p>
+<p>| 1 | baseline | 77.54% |</p>
+<p>| 4 | from_scratch_mlp | 13.86% |</p>
+<p>**Winner:** ga_best with 78.66% test accuracy</p>
+<p>Detailed comparison saved to: `accuracy_comparison.csv`</p>
+<h3>6.2 Per-Model Performance</h3>
+<p>- Baseline Test Acc: 77.54%</p>
+<p>- Random Search Best Test Acc: 78.56%</p>
+<p>- GA Best Test Acc: 78.66%</p>
+<p>- From-Scratch MLP Test Acc: 13.86%</p>
+<p>---</p>
+<h2>7. Classification Reports</h2>
+<p>Detailed per-class precision, recall, and F1-scores for each model:</p>
+<h3>baseline</h3>
+<p>See: [`classification_report_baseline.txt`](classification_report_baseline.txt)</p>
+<h3>random_search_best</h3>
+<p>See: [`classification_report_random_search_best.txt`](classification_report_random_search_best.txt)</p>
+<h3>ga_best ⭐</h3>
+<p>See: [`classification_report_ga_best.txt`](classification_report_ga_best.txt)</p>
+<p>---</p>
+<h2>8. Confusion Matrices</h2>
+<p>Visual analysis of model predictions vs ground truth:</p>
+<h3>baseline</h3>
+<img src="figures\confusion_matrix_baseline.png" alt="Confusion Matrix for baseline" style="max-width:100%;"/>
+<h3>random_search_best</h3>
+<img src="figures\confusion_matrix_random_search_best.png" alt="Confusion Matrix for random_search_best" style="max-width:100%;"/>
+<h3>ga_best ⭐</h3>
+<img src="figures\confusion_matrix_ga_best.png" alt="Confusion Matrix for ga_best" style="max-width:100%;"/>
+<p>---</p>
+<h2>9. Learning Curves</h2>
+<h3>9.1 Individual Model Training Curves</h3>
+<p>Loss and accuracy progression for each model:</p>
+<h3> baseline</h3>
+<img src="figures\training_curves_baseline.png" alt="Training curves for baseline" style="max-width:100%;"/>
+<h3> random_search_best</h3>
+<img src="figures\training_curves_random_search_best.png" alt="Training curves for random_search_best" style="max-width:100%;"/>
+<h3> ga_best ⭐</h3>
+<img src="figures\training_curves_ga_best.png" alt="Training curves for ga_best" style="max-width:100%;"/>
+<h3>9.2 Combined Accuracy Comparison</h3>
+<p>All models compared on the same axes:</p>
+<img src="figures\accuracy_curves_comparison.png" alt="Accuracy Curves Comparison" style="max-width:100%;"/>
+<p>---</p>
+<h2>10. Discussion</h2>
+<h3>Key Findings</h3>
+<p>1. **Best Model:** ga_best achieved 78.66% test accuracy</p>
+<p>2. **Optimization Impact:** Hyperparameter tuning (Random Search/GA) vs baseline comparison</p>
+<p>3. **Overfitting Analysis:** Train vs validation accuracy divergence patterns</p>
+<p>4. **Misclassification Trends:** Confusion matrix reveals challenging class pairs</p>
+<h3>Observations</h3>
+<p>- Transfer learning with ResNet18 provides strong feature representations</p>
+<p>- Small MLP heads (2-3 layers) sufficient for 512-D embeddings</p>
+<p>- Learning rate and batch size critical hyperparameters</p>
+<p>---</p>
+<h2>11. Conclusion</h2>
+<h3>Summary</h3>
+<p>The ga_best configuration demonstrated superior performance with 78.66% test accuracy, validating the effectiveness of automated hyperparameter optimization.</p>
+<h3>Future Work</h3>
+<p>- **Data Augmentation:** Rotation, flip, color jittering</p>
+<p>- **Regularization:** Dropout, L2 penalty</p>
+<p>- **Learning Rate Scheduling:** Cosine annealing, warm restarts</p>
+<p>- **Ensemble Methods:** Model averaging, stacking</p>
+<p>- **Fine-tuning:** Unfreeze ResNet18 layers for end-to-end training</p>
+<p>---</p>
+<h2>Appendix</h2>
+<h3>File Structure</h3>
+<p>```</p>
+<p>report/</p>
+<p>├── REPORT.md                          # This file</p>
+<p>├── accuracy_comparison.csv             # Accuracy table</p>
+<p>├── classification_report_*.txt         # Per-model reports</p>
+<p>└── figures/</p>
+<p>    ├── confusion_matrix_*.png          # Confusion matrices</p>
+<p>    ├── training_curves_*.png           # Individual training curves</p>
+<p>    └── accuracy_curves_comparison.png  # Combined comparison</p>
+<p>```</p>
+<h3>Tools & Libraries</h3>
+<p>- **PyTorch:** Deep learning framework</p>
+<p>- **torchvision:** Pretrained models</p>
+<p>- **NumPy/CuPy:** Numerical computing</p>
+<p>- **scikit-learn:** Metrics and evaluation</p>
+<p>- **Matplotlib:** Visualization</p>
+<p>---</p>
+<p>*Report generated automatically on 2025-12-22 10:19:01*</p>
+
+</body></html>
